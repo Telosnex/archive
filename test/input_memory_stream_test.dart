@@ -1,4 +1,4 @@
-import 'package:archive/archive.dart';
+import 'package:archive_40/archive.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:archive/archive_io.dart';
+import 'package:archive_40/archive_io.dart';
 
 Future<void> main() async {
   // Read the Zip file from disk.
