@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as crypto;
 
 /// Get the CRC-32 checksum of the given int.
@@ -7,25 +8,33 @@ int getCrc32Byte(int crc, int b) => _crc32Table[(crc ^ b) & 0xff] ^ (crc >> 8);
 /// Get the CRC-32 checksum of the given array. You can append bytes to an
 /// already computed crc by specifying the previous [crc] value.
 int getCrc32(List<int> array, [int crc = 0]) {
-  var len = array.length;
+  // Use Uint8List for faster byte access
+  final bytes = array is Uint8List ? array : Uint8List.fromList(array);
+  
   crc = crc ^ 0xffffffff;
-  var ip = 0;
+  
+  // Process 8 bytes at a time
+  int len = bytes.length;
+  int i = 0;
+  
   while (len >= 8) {
-    crc = _crc32Table[(crc ^ array[ip++]) & 0xff] ^ (crc >> 8);
-    crc = _crc32Table[(crc ^ array[ip++]) & 0xff] ^ (crc >> 8);
-    crc = _crc32Table[(crc ^ array[ip++]) & 0xff] ^ (crc >> 8);
-    crc = _crc32Table[(crc ^ array[ip++]) & 0xff] ^ (crc >> 8);
-    crc = _crc32Table[(crc ^ array[ip++]) & 0xff] ^ (crc >> 8);
-    crc = _crc32Table[(crc ^ array[ip++]) & 0xff] ^ (crc >> 8);
-    crc = _crc32Table[(crc ^ array[ip++]) & 0xff] ^ (crc >> 8);
-    crc = _crc32Table[(crc ^ array[ip++]) & 0xff] ^ (crc >> 8);
+    crc = _crc32Table[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+    crc = _crc32Table[(crc ^ bytes[i + 1]) & 0xff] ^ (crc >>> 8);
+    crc = _crc32Table[(crc ^ bytes[i + 2]) & 0xff] ^ (crc >>> 8);
+    crc = _crc32Table[(crc ^ bytes[i + 3]) & 0xff] ^ (crc >>> 8);
+    crc = _crc32Table[(crc ^ bytes[i + 4]) & 0xff] ^ (crc >>> 8);
+    crc = _crc32Table[(crc ^ bytes[i + 5]) & 0xff] ^ (crc >>> 8);
+    crc = _crc32Table[(crc ^ bytes[i + 6]) & 0xff] ^ (crc >>> 8);
+    crc = _crc32Table[(crc ^ bytes[i + 7]) & 0xff] ^ (crc >>> 8);
+    i += 8;
     len -= 8;
   }
-  if (len > 0) {
-    do {
-      crc = _crc32Table[(crc ^ array[ip++]) & 0xff] ^ (crc >> 8);
-    } while (--len > 0);
+  
+  // Process remaining bytes
+  while (i < bytes.length) {
+    crc = _crc32Table[(crc ^ bytes[i++]) & 0xff] ^ (crc >>> 8);
   }
+  
   return crc ^ 0xffffffff;
 }
 
